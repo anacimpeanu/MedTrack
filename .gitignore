@@ -1,0 +1,16 @@
+# Android / Gradle artifacts
+**/build/
+.gradle/
+
+# Local SDK config
+android/local.properties
+
+# IDE files
+.idea/
+android/.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
