@@ -26,6 +26,8 @@ import com.medtrack.presentation.LogsScreen
 import com.medtrack.presentation.LogsViewModel
 import com.medtrack.presentation.PatientsScreen
 import com.medtrack.presentation.PatientsViewModel
+import com.medtrack.presentation.RegisterScreen
+import com.medtrack.presentation.RegisterViewModel
 import com.medtrack.presentation.TreatmentPlanScreen
 import com.medtrack.presentation.TreatmentPlanViewModel
 
@@ -36,6 +38,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
+                val registerVm: RegisterViewModel = viewModel(
+                    factory = RegisterVmFactory(app.repository)
+                )
                 val patientsVm: PatientsViewModel = viewModel(
                     factory = PatientsVmFactory(app.repository)
                 )
@@ -45,9 +50,17 @@ class MainActivity : ComponentActivity() {
                 val logsVm: LogsViewModel = viewModel(
                     factory = LogsVmFactory(app.repository)
                 )
-                MedTrackRoot(patientsVm, treatmentVm, logsVm)
+                MedTrackRoot(registerVm, patientsVm, treatmentVm, logsVm)
             }
         }
+    }
+}
+
+private class RegisterVmFactory(
+    private val repository: MedTrackRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return RegisterViewModel(repository) as T
     }
 }
 
@@ -76,6 +89,7 @@ private class LogsVmFactory(
 }
 
 private enum class AppTab(val label: String) {
+    Register("Register"),
     Patients("Patients"),
     Treatment("Treatment"),
     Logs("Logs")
@@ -84,11 +98,12 @@ private enum class AppTab(val label: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MedTrackRoot(
+    registerViewModel: RegisterViewModel,
     patientsViewModel: PatientsViewModel,
     treatmentPlanViewModel: TreatmentPlanViewModel,
     logsViewModel: LogsViewModel
 ) {
-    var selectedTab by remember { mutableStateOf(AppTab.Patients) }
+    var selectedTab by remember { mutableStateOf(AppTab.Register) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("MedTrack") }) },
@@ -106,6 +121,12 @@ private fun MedTrackRoot(
         }
     ) { padding ->
         when (selectedTab) {
+            AppTab.Register -> {
+                RegisterScreen(
+                    viewModel = registerViewModel,
+                    modifier = Modifier.fillMaxSize().padding(padding)
+                )
+            }
             AppTab.Patients -> {
                 PatientsScreen(
                     viewModel = patientsViewModel,
