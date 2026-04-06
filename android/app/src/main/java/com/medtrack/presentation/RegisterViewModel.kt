@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.medtrack.data.local.entity.UserEntity
 import com.medtrack.domain.repository.MedTrackRepository
-import java.security.MessageDigest
 import java.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -115,9 +114,4 @@ class RegisterViewModel(
     }
 }
 
-private fun String.sha256(): String {
-    val digest = MessageDigest.getInstance("SHA-256")
-    val hash = digest.digest(toByteArray())
-    return hash.joinToString("") { byte -> "%02x".format(byte) }
-}
 

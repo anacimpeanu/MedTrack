@@ -27,6 +27,8 @@ class LocalMedTrackRepository(
 ) : MedTrackRepository {
     override suspend fun addUser(user: UserEntity): Long = usersDao.insertUser(user)
 
+    override suspend fun getUserByEmail(email: String): UserEntity? = usersDao.getUserByEmail(email)
+
     override suspend fun addPatient(patient: PatientEntity): Long = patientsDao.insertPatient(patient)
 
     override fun observePatientsByUser(userId: Long): Flow<List<PatientEntity>> =
