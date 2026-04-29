@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface MedTrackRepository {
     suspend fun addUser(user: UserEntity): Long
+    suspend fun getUserByEmail(email: String): UserEntity?
     suspend fun addPatient(patient: PatientEntity): Long
     fun observePatientsByUser(userId: Long): Flow<List<PatientEntity>>
 
