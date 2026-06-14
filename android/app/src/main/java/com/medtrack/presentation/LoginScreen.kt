@@ -29,7 +29,7 @@ import androidx.compose.animation.core.tween
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    onLoginSuccess: (Long) -> Unit,
+    onLoginSuccess: (Long, Boolean) -> Unit,
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -38,7 +38,7 @@ fun LoginScreen(
 
     LaunchedEffect(state.authenticatedUserId) {
         state.authenticatedUserId?.let { userId ->
-            onLoginSuccess(userId)
+            onLoginSuccess(userId, !state.profileCompleted)
             viewModel.clearLoginSuccess()
         }
     }

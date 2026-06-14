@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.medtrack.data.local.entity.MedicationEntity
 import com.medtrack.data.local.entity.MedicationScheduleEntity
 import com.medtrack.data.local.entity.PatientMedicationEntity
@@ -16,6 +17,15 @@ interface TreatmentPlanDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertPatientMedication(item: PatientMedicationEntity): Long
+
+    @Query("SELECT * FROM patient_medications WHERE patient_medication_id = :id LIMIT 1")
+    suspend fun getPatientMedicationById(id: Long): PatientMedicationEntity?
+
+    @Update
+    suspend fun updatePatientMedication(item: PatientMedicationEntity)
+
+    @Query("DELETE FROM patient_medications WHERE patient_medication_id = :id")
+    suspend fun deletePatientMedication(id: Long)
 
     @Query("SELECT * FROM patient_medications WHERE patient_id = :patientId AND is_active = 1 ORDER BY start_date DESC")
     fun observeActiveMedicationPlans(patientId: Long): Flow<List<PatientMedicationEntity>>

@@ -29,7 +29,15 @@ class LocalMedTrackRepository(
 
     override suspend fun getUserByEmail(email: String): UserEntity? = usersDao.getUserByEmail(email)
 
+    override suspend fun getUserById(userId: Long): UserEntity? = usersDao.getUserById(userId)
+
+    override suspend fun updateUser(user: UserEntity) = usersDao.updateUser(user)
+
     override suspend fun addPatient(patient: PatientEntity): Long = patientsDao.insertPatient(patient)
+
+    override suspend fun getPatientById(patientId: Long): PatientEntity? = patientsDao.getPatientById(patientId)
+
+    override suspend fun updatePatient(patient: PatientEntity) = patientsDao.updatePatient(patient)
 
     override fun observePatientsByUser(userId: Long): Flow<List<PatientEntity>> =
         patientsDao.observePatientsByUser(userId)
@@ -39,6 +47,15 @@ class LocalMedTrackRepository(
 
     override suspend fun addPatientMedication(plan: PatientMedicationEntity): Long =
         treatmentPlanDao.insertPatientMedication(plan)
+
+    override suspend fun getPatientMedicationById(id: Long): PatientMedicationEntity? =
+        treatmentPlanDao.getPatientMedicationById(id)
+
+    override suspend fun updatePatientMedication(item: PatientMedicationEntity) =
+        treatmentPlanDao.updatePatientMedication(item)
+
+    override suspend fun deletePatientMedication(id: Long) =
+        treatmentPlanDao.deletePatientMedication(id)
 
     override fun observeActivePlans(patientId: Long): Flow<List<PatientMedicationEntity>> =
         treatmentPlanDao.observeActiveMedicationPlans(patientId)
@@ -53,6 +70,10 @@ class LocalMedTrackRepository(
 
     override fun observeLogsByPatient(patientId: Long): Flow<List<MedicationLogEntity>> =
         logsDao.observeLogsByPatient(patientId)
+
+    override suspend fun updateLog(log: MedicationLogEntity) = logsDao.updateLog(log)
+
+    override suspend fun deleteLog(id: Long) = logsDao.deleteLog(id)
 
     override suspend fun addNotification(notification: NotificationEntity): Long =
         notificationsDao.insertNotification(notification)

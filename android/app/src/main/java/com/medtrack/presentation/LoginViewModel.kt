@@ -14,6 +14,7 @@ data class LoginUiState(
     val password: String = "",
     val isSubmitting: Boolean = false,
     val authenticatedUserId: Long? = null,
+    val profileCompleted: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -57,6 +58,7 @@ class LoginViewModel(
                         it.copy(
                             isSubmitting = false,
                             authenticatedUserId = null,
+                            profileCompleted = false,
                             errorMessage = "Invalid email or password."
                         )
                     }
@@ -68,6 +70,7 @@ class LoginViewModel(
                         password = "",
                         isSubmitting = false,
                         authenticatedUserId = user.userId,
+                        profileCompleted = user.profileCompleted,
                         errorMessage = null
                     )
                 }
@@ -76,6 +79,7 @@ class LoginViewModel(
                     it.copy(
                         isSubmitting = false,
                         authenticatedUserId = null,
+                        profileCompleted = false,
                         errorMessage = "Could not sign in. Try again."
                     )
                 }
@@ -84,7 +88,7 @@ class LoginViewModel(
     }
 
     fun clearLoginSuccess() {
-        _uiState.update { it.copy(authenticatedUserId = null) }
+        _uiState.update { it.copy(authenticatedUserId = null, profileCompleted = false) }
     }
 }
 

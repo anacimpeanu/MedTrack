@@ -19,6 +19,7 @@ import com.medtrack.data.local.entity.NotificationEntity
 import com.medtrack.data.local.entity.PatientEntity
 import com.medtrack.data.local.entity.PatientMedicationEntity
 import com.medtrack.data.local.entity.UserEntity
+import androidx.room.migration.Migration
 
 @Database(
     entities = [
@@ -31,7 +32,7 @@ import com.medtrack.data.local.entity.UserEntity
         NotificationEntity::class,
         AppointmentEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MedTrackDatabase : RoomDatabase() {
@@ -46,21 +47,70 @@ abstract class MedTrackDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: MedTrackDatabase? = null
 
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE users ADD COLUMN profile_role TEXT NOT NULL DEFAULT 'patient'")
+                db.execSQL("ALTER TABLE users ADD COLUMN profile_photo_uri TEXT")
+                db.execSQL("ALTER TABLE users ADD COLUMN age INTEGER")
+                db.execSQL("ALTER TABLE users ADD COLUMN birth_date TEXT")
+                db.execSQL("ALTER TABLE users ADD COLUMN cnp TEXT")
+                db.execSQL("ALTER TABLE users ADD COLUMN height_cm INTEGER")
+                db.execSQL("ALTER TABLE users ADD COLUMN weight_kg REAL")
+                db.execSQL("ALTER TABLE users ADD COLUMN sex TEXT")
+                db.execSQL("ALTER TABLE users ADD COLUMN profile_completed INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getInstance(context: Context): MedTrackDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     MedTrackDatabase::class.java,
                     "medtrack.db"
-                ).fallbackToDestructiveMigration()
+                ).addMigrations(MIGRATION_1_2)
+                    .fallbackToDestructiveMigration()
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
                             // Seed a local owner account used by the demo ViewModel flow.
                             db.execSQL(
                                 """
-                                INSERT INTO users (user_id, full_name, email, password_hash, phone, created_at, updated_at)
-                                VALUES (1, 'Demo User', 'demo@medtrack.local', 'local_seed_hash', '+40123456789', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                                INSERT INTO users (
+                                    user_id,
+                                    full_name,
+                                    email,
+                                    password_hash,
+                                    phone,
+                                    profile_role,
+                                    profile_photo_uri,
+                                    age,
+                                    birth_date,
+                                    cnp,
+                                    height_cm,
+                                    weight_kg,
+                                    sex,
+                                    profile_completed,
+                                    created_at,
+                                    updated_at
+                                )
+                                VALUES (
+                                    1,
+                                    'Demo User',
+                                    'demo@medtrack.local',
+                                    'local_seed_hash',
+                                    '+40123456789',
+                                    'patient',
+                                    NULL,
+                                    44,
+                                    '1980-05-12',
+                                    '0000000000000',
+                                    178,
+                                    74.5,
+                                    'male',
+                                    1,
+                                    CURRENT_TIMESTAMP,
+                                    CURRENT_TIMESTAMP
+                                )
                                 """.trimIndent()
                             )
                             db.execSQL(

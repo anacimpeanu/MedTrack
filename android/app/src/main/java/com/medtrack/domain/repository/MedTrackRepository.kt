@@ -13,18 +13,27 @@ import kotlinx.coroutines.flow.Flow
 interface MedTrackRepository {
     suspend fun addUser(user: UserEntity): Long
     suspend fun getUserByEmail(email: String): UserEntity?
+    suspend fun getUserById(userId: Long): UserEntity?
+    suspend fun updateUser(user: UserEntity)
     suspend fun addPatient(patient: PatientEntity): Long
+    suspend fun getPatientById(patientId: Long): PatientEntity?
+    suspend fun updatePatient(patient: PatientEntity)
     fun observePatientsByUser(userId: Long): Flow<List<PatientEntity>>
 
     suspend fun addMedication(medication: MedicationEntity): Long
     suspend fun addPatientMedication(plan: PatientMedicationEntity): Long
     fun observeActivePlans(patientId: Long): Flow<List<PatientMedicationEntity>>
+    suspend fun getPatientMedicationById(id: Long): PatientMedicationEntity?
+    suspend fun updatePatientMedication(item: PatientMedicationEntity)
+    suspend fun deletePatientMedication(id: Long)
 
     suspend fun addSchedule(schedule: MedicationScheduleEntity): Long
     fun observeSchedules(patientMedicationId: Long): Flow<List<MedicationScheduleEntity>>
 
     suspend fun addLog(log: MedicationLogEntity): Long
     fun observeLogsByPatient(patientId: Long): Flow<List<MedicationLogEntity>>
+    suspend fun updateLog(log: MedicationLogEntity)
+    suspend fun deleteLog(id: Long)
 
     suspend fun addNotification(notification: NotificationEntity): Long
     fun observeNotifications(userId: Long): Flow<List<NotificationEntity>>
