@@ -41,6 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 
 @Composable
 fun DashboardScreen(
@@ -100,6 +103,14 @@ fun DashboardScreen(
 
         if (subPage == "health_calendar") {
             HealthCalendarScreen(
+                viewModel = viewModel,
+                onBack = { subPage = "overview" }
+            )
+            return@Box
+        }
+
+        if (subPage == "medical_profile") {
+            MedicalProfileScreen(
                 viewModel = viewModel,
                 onBack = { subPage = "overview" }
             )
@@ -305,31 +316,30 @@ private fun ProfileSummaryCard(
     profileBitmap: android.graphics.Bitmap?,
     onEdit: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onEdit() },
-        shape = RoundedCornerShape(28.dp),
+            .clickable { expanded = !expanded },
+        shape = RoundedCornerShape(30.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.94f)
+            containerColor = Color.White.copy(alpha = 0.96f)
         )
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(22.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Profile",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
                 Surface(
-                    modifier = Modifier.size(84.dp),
+                    modifier = Modifier.size(110.dp),
                     shape = CircleShape,
                     color = Color(0xFFF0F4FF)
                 ) {
@@ -341,39 +351,131 @@ private fun ProfileSummaryCard(
                                 modifier = Modifier.fillMaxSize()
                             )
                         } else {
-                            Text("👤", fontSize = 34.sp)
+                            Text("👤", fontSize = 42.sp)
                         }
                     }
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = state.user?.fullName.orEmpty(),
-                        fontWeight = FontWeight.Bold
+                Button(
+                    onClick = onEdit,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(start = 82.dp, top = 82.dp)
+                        .size(42.dp),
+                    shape = CircleShape,
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF667EEA)
                     )
+                ) {
+                    Text("✎", color = Color.White)
+                }
+            }
 
-                    Text(
-                        text = state.user?.email.orEmpty(),
-                        color = Color.Gray
-                    )
+            Text(
+                text = state.user?.fullName.orEmpty(),
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
 
-                    Text(
-                        text = when (state.user?.profileRole?.lowercase()) {
-                            "caretaker" -> "Caretaker"
-                            else -> "Patient"
-                        },
-                        color = Color(0xFF667EEA),
-                        fontWeight = FontWeight.SemiBold
-                    )
+            Text(
+                text = state.user?.email.orEmpty(),
+                color = Color.Gray,
+                fontSize = 13.sp
+            )
 
-                    Text(
-                        text = "Age: ${state.user?.age?.toString() ?: "-"} | Sex: ${state.user?.sex ?: "-"}",
-                        color = Color.DarkGray,
-                        fontSize = 12.sp
-                    )
+            Text(
+                text = "Age: ${state.user?.age?.toString() ?: "-"}",
+                color = Color.DarkGray,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+
+            Surface(
+                shape = RoundedCornerShape(50.dp),
+                color = Color(0xFF667EEA).copy(alpha = 0.12f)
+            ) {
+                Text(
+                    text = when (state.user?.profileRole?.lowercase()) {
+                        "caretaker" -> "Caretaker"
+                        else -> "Patient"
+                    },
+                    modifier = Modifier.padding(
+                        horizontal = 14.dp,
+                        vertical = 6.dp
+                    ),
+                    color = Color(0xFF667EEA),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+            }
+
+            Text(
+                text = if (expanded) {
+                    "Tap to hide details ▲"
+                } else {
+                    "Tap to view details ▼"
+                },
+                color = Color(0xFF667EEA),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { -20 })
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    ProfileDetailRow("Role", state.user?.profileRole ?: "-")
+                    ProfileDetailRow("Age", state.user?.age?.toString() ?: "-")
+                    ProfileDetailRow("Sex", state.user?.sex ?: "-")
+                    ProfileDetailRow("CNP", state.user?.cnp ?: "-")
+                    ProfileDetailRow("Height", "${state.user?.heightCm ?: "-"} cm")
+                    ProfileDetailRow("Weight", "${state.user?.weightKg ?: "-"} kg")
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ProfileDetailRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, color = Color.Gray)
+        Text(value, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun ProfileStatItem(
+    title: String,
+    value: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = value,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF667EEA),
+            fontSize = 18.sp
+        )
+
+        Text(
+            text = title,
+            color = Color.Gray,
+            fontSize = 12.sp
+        )
     }
 }
 

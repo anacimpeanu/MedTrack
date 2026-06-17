@@ -33,7 +33,7 @@ import androidx.room.migration.Migration
         NotificationEntity::class,
         AppointmentEntity::class
     ],
-    version = 5,
+    version = 7,
     exportSchema = false
 )
 abstract class MedTrackDatabase : RoomDatabase() {

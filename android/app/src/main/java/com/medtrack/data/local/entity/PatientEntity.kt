@@ -57,5 +57,17 @@ data class PatientEntity(
     val chronicConditions: String? = null,
 
     @ColumnInfo(name = "created_at")
-    val createdAt: String
+    val createdAt: String,
+
+    @ColumnInfo(name = "emergency_contact")
+    val emergencyContact: String? = null,
+
+    @ColumnInfo(name = "emergency_phone")
+    val emergencyPhone: String? = null,
+
+    @ColumnInfo(name = "family_doctor")
+    val familyDoctor: String? = null,
+
+    @ColumnInfo(name = "insurance_provider")
+    val insuranceProvider: String? = null,
 )

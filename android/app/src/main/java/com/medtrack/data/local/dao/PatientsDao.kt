@@ -60,4 +60,26 @@ interface PatientsDao {
         patientId: Long,
         caretakerId: Long
     )
+
+    @Query("""
+    UPDATE patients
+    SET blood_type = :bloodType,
+        allergies = :allergies,
+        chronic_conditions = :chronicConditions,
+        emergency_contact = :emergencyContact,
+        emergency_phone = :emergencyPhone,
+        family_doctor = :familyDoctor,
+        insurance_provider = :insuranceProvider
+    WHERE patient_id = :patientId
+""")
+    suspend fun updateMedicalProfile(
+        patientId: Long,
+        bloodType: String?,
+        allergies: String?,
+        chronicConditions: String?,
+        emergencyContact: String?,
+        emergencyPhone: String?,
+        familyDoctor: String?,
+        insuranceProvider: String?
+    )
 }

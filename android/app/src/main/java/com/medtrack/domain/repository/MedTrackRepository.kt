@@ -55,4 +55,15 @@ interface MedTrackRepository {
         appointmentId: Long,
         status: String
     )
+
+    suspend fun updateMedicalProfile(
+        patientId: Long,
+        bloodType: String?,
+        allergies: String?,
+        chronicConditions: String?,
+        emergencyContact: String?,
+        emergencyPhone: String?,
+        familyDoctor: String?,
+        insuranceProvider: String?
+    )
 }

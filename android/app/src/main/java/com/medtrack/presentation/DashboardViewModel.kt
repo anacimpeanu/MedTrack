@@ -686,4 +686,38 @@ class DashboardViewModel(
             }
         }
     }
+    fun updateMedicalProfile(
+        bloodType: String,
+        allergies: String,
+        chronicConditions: String,
+        emergencyContact: String,
+        emergencyPhone: String,
+        familyDoctor: String,
+        insuranceProvider: String
+    ) {
+        val patientId = _uiState.value.selectedPatientId ?: return
+
+        viewModelScope.launch {
+            try {
+                repository.updateMedicalProfile(
+                    patientId = patientId,
+                    bloodType = bloodType.ifBlank { null },
+                    allergies = allergies.ifBlank { null },
+                    chronicConditions = chronicConditions.ifBlank { null },
+                    emergencyContact = emergencyContact.ifBlank { null },
+                    emergencyPhone = emergencyPhone.ifBlank { null },
+                    familyDoctor = familyDoctor.ifBlank { null },
+                    insuranceProvider = insuranceProvider.ifBlank { null }
+                )
+
+                _uiState.update {
+                    it.copy(successMessage = "Medical profile updated.")
+                }
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(errorMessage = "Could not update medical profile.")
+                }
+            }
+        }
+    }
 }

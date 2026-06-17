@@ -16,6 +16,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.medtrack.data.local.entity.PatientEntity
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @Composable
 fun PatientsScreen(viewModel: PatientsViewModel, modifier: Modifier = Modifier) {
@@ -36,14 +41,50 @@ fun PatientsScreen(viewModel: PatientsViewModel, modifier: Modifier = Modifier) 
         }
     }
 }
-
 @Composable
 private fun PatientCard(patient: PatientEntity) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(text = patient.fullName, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Gender: ${patient.gender ?: "unspecified"}")
-            Text(text = "Blood type: ${patient.bloodType ?: "unknown"}")
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            Text(
+                text = patient.fullName,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Patient Profile",
+                color = Color(0xFF667EEA),
+                fontWeight = FontWeight.SemiBold
+            )
+
+            HorizontalDivider()
+
+            Text("👤 Gender: ${patient.gender ?: "-"}")
+
+            Text("🎂 Birth date: ${patient.birthDate ?: "-"}")
+
+            Text("🩸 Blood type: ${patient.bloodType ?: "-"}")
+
+            Text("⚠️ Allergies: ${patient.allergies ?: "-"}")
+
+            Text("🏥 Conditions: ${patient.chronicConditions ?: "-"}")
+
+
+            Text(
+                text = "Patient ID: ${patient.patientId}",
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

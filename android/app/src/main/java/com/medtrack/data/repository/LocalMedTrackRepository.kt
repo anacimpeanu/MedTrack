@@ -112,6 +112,28 @@ class LocalMedTrackRepository(
             status = status
         )
     }
+
+    override suspend fun updateMedicalProfile(
+        patientId: Long,
+        bloodType: String?,
+        allergies: String?,
+        chronicConditions: String?,
+        emergencyContact: String?,
+        emergencyPhone: String?,
+        familyDoctor: String?,
+        insuranceProvider: String?
+    ) {
+        patientsDao.updateMedicalProfile(
+            patientId = patientId,
+            bloodType = bloodType,
+            allergies = allergies,
+            chronicConditions = chronicConditions,
+            emergencyContact = emergencyContact,
+            emergencyPhone = emergencyPhone,
+            familyDoctor = familyDoctor,
+            insuranceProvider = insuranceProvider
+        )
+    }
 }
 
 

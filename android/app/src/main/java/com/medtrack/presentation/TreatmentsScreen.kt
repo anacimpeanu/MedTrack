@@ -278,11 +278,11 @@ private fun AddTreatmentCard(
                 placeholder = "daily / twice daily / weekly"
             )
 
-            PrettyTreatmentField(
+            TimePickerField(
                 value = times,
                 onValueChange = onTimesChange,
                 label = "Times",
-                placeholder = "08:00, 14:00, 20:00"
+                placeholder = "Tap to select one or more times"
             )
 
             Button(

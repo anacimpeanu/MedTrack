@@ -339,12 +339,10 @@ private fun AddAppointmentCard(
                 label = "Specialty",
                 placeholder = "Ex: Cardiologist"
             )
-
-            PrettyTextField(
+            DateTimePickerField(
                 value = appointmentDate,
                 onValueChange = onAppointmentDateChange,
-                label = "Date and time",
-                placeholder = "2026-06-20 10:30"
+                label = "Date and time"
             )
 
             PrettyTextField(

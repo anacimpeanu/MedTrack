@@ -1,25 +1,40 @@
 package com.medtrack.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun PatientDetailsScreen(
@@ -35,108 +50,251 @@ fun PatientDetailsScreen(
         it.patientId == patientId
     }
 
-    if (patient == null) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF667EEA),
+                        Color(0xFF764BA2)
+                    )
+                )
+            )
+    ) {
+        if (patient == null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                HeaderBar(onBack = onBack)
+
+                EmptyPatientCard(
+                    title = "Patient not found",
+                    message = "This patient could not be loaded."
+                )
+            }
+            return@Box
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            TextButton(onClick = onBack) {
-                Text("Back")
+            HeaderBar(onBack = onBack)
+
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { -40 })
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = patient.fullName,
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = "Patient profile, medical summary and activity overview.",
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontSize = 14.sp
+                    )
+                }
             }
 
-            Text("Patient not found.", color = Color.Red)
-        }
-        return
-    }
+            PatientHeroCard(
+                fullName = patient.fullName,
+                birthDate = patient.birthDate ?: "-",
+                gender = patient.gender ?: "-"
+            )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            StatsCard(
+                activeTreatments = state.activePlans.size,
+                journalEntries = state.logs.size
+            )
+
+            MedicalSummaryCard(
+                bloodType = patient.bloodType ?: "-",
+                allergies = patient.allergies ?: "-",
+                conditions = patient.chronicConditions ?: "-"
+            )
+
+            QuickActionsCard(
+                onOpenTreatments = {
+                    viewModel.selectPatient(patient.patientId)
+                    onOpenTreatments()
+                },
+                onOpenJournal = {
+                    viewModel.selectPatient(patient.patientId)
+                    onOpenJournal()
+                }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun HeaderBar(
+    onBack: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         TextButton(onClick = onBack) {
-            Text("Back")
+            Text(
+                text = "← Back",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
         }
 
         Text(
-            text = patient.fullName,
-            style = MaterialTheme.typography.headlineSmall,
+            text = "MedTrack",
+            color = Color.White.copy(alpha = 0.9f),
             fontWeight = FontWeight.Bold
         )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text("Patient details", fontWeight = FontWeight.Bold)
-                Text("Birth date: ${patient.birthDate ?: "-"}")
-                Text("Gender: ${patient.gender ?: "-"}")
-                Text("Blood type: ${patient.bloodType ?: "-"}")
-                Text("Allergies: ${patient.allergies ?: "-"}")
-                Text("Chronic conditions: ${patient.chronicConditions ?: "-"}")
-            }
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text("Active treatments", fontWeight = FontWeight.Bold)
-                    Text(state.activePlans.size.toString())
-                }
-
-                Column {
-                    Text("Journal entries", fontWeight = FontWeight.Bold)
-                    Text(state.logs.size.toString())
-                }
-            }
-        }
-
-        Button(
-            onClick = {
-                viewModel.selectPatient(patient.patientId)
-                onOpenTreatments()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Manage treatments")
-        }
-
-        Button(
-            onClick = {
-                viewModel.selectPatient(patient.patientId)
-                onOpenJournal()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Open journal")
-        }
     }
+}
+
+@Composable
+private fun PatientHeroCard(
+    fullName: String,
+    birthDate: String,
+    gender: String
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.94f)
+            containerColor = Color.White.copy(alpha = 0.16f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = Color.White.copy(alpha = 0.25f)
+            ) {
+                Text(
+                    text = "👤",
+                    modifier = Modifier.padding(14.dp),
+                    fontSize = 28.sp
+                )
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = fullName,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+
+                Text(
+                    text = "Birth date: $birthDate",
+                    color = Color.White.copy(alpha = 0.85f),
+                    fontSize = 13.sp
+                )
+
+                Text(
+                    text = "Gender: $gender",
+                    color = Color.White.copy(alpha = 0.85f),
+                    fontSize = 13.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatsCard(
+    activeTreatments: Int,
+    journalEntries: Int
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.96f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            StatItem(
+                title = "Treatments",
+                value = activeTreatments.toString()
+            )
+
+            StatItem(
+                title = "Journal",
+                value = journalEntries.toString()
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatItem(
+    title: String,
+    value: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = value,
+            color = Color(0xFF667EEA),
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp
+        )
+
+        Text(
+            text = title,
+            color = Color.DarkGray,
+            fontSize = 13.sp
+        )
+    }
+}
+
+@Composable
+private fun MedicalSummaryCard(
+    bloodType: String,
+    allergies: String,
+    conditions: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.96f)
         )
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = "Medical Summary",
@@ -144,19 +302,138 @@ fun PatientDetailsScreen(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Text("Blood Type: ${patient.bloodType ?: "-"}")
+            SummaryRow(
+                icon = "🩸",
+                title = "Blood Type",
+                value = bloodType
+            )
+
+            SummaryRow(
+                icon = "⚠️",
+                title = "Allergies",
+                value = allergies
+            )
+
+            SummaryRow(
+                icon = "📋",
+                title = "Conditions",
+                value = conditions
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryRow(
+    icon: String,
+    title: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = Color(0xFF667EEA).copy(alpha = 0.15f)
+        ) {
+            Text(
+                text = icon,
+                modifier = Modifier.padding(10.dp),
+                fontSize = 18.sp
+            )
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF667EEA)
+            )
 
             Text(
-                text = "Allergies:",
-                fontWeight = FontWeight.SemiBold
+                text = value,
+                color = Color.DarkGray,
+                fontSize = 13.sp
             )
-            Text(patient.allergies ?: "-")
+        }
+    }
+}
+
+@Composable
+private fun QuickActionsCard(
+    onOpenTreatments: () -> Unit,
+    onOpenJournal: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.96f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = "Quick Actions",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Button(
+                onClick = onOpenTreatments,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF667EEA)
+                )
+            ) {
+                Text("Manage treatments")
+            }
+
+            Button(
+                onClick = onOpenJournal,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF667EEA)
+                )
+            ) {
+                Text("Open journal")
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyPatientCard(
+    title: String,
+    message: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.96f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold
+            )
 
             Text(
-                text = "Conditions:",
-                fontWeight = FontWeight.SemiBold
+                text = message,
+                color = Color.Gray,
+                fontSize = 13.sp
             )
-            Text(patient.chronicConditions ?: "-")
         }
     }
 }
