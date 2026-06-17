@@ -42,6 +42,22 @@ class LocalMedTrackRepository(
     override fun observePatientsByUser(userId: Long): Flow<List<PatientEntity>> =
         patientsDao.observePatientsByUser(userId)
 
+    override fun observePatientsByCaretaker(caretakerId: Long): Flow<List<PatientEntity>> =
+        patientsDao.observePatientsByCaretaker(caretakerId)
+
+    override fun observeAvailablePatients(): Flow<List<PatientEntity>> =
+        patientsDao.observeAvailablePatients()
+
+    override suspend fun assignCaretakerToPatient(
+        patientId: Long,
+        caretakerId: Long
+    ) {
+        patientsDao.assignCaretakerToPatient(
+            patientId = patientId,
+            caretakerId = caretakerId
+        )
+    }
+
     override suspend fun addMedication(medication: MedicationEntity): Long =
         treatmentPlanDao.insertMedication(medication)
 
@@ -86,6 +102,16 @@ class LocalMedTrackRepository(
 
     override fun observeAppointments(patientId: Long): Flow<List<AppointmentEntity>> =
         appointmentsDao.observeAppointments(patientId)
+
+    override suspend fun updateAppointmentStatus(
+        appointmentId: Long,
+        status: String
+    ) {
+        appointmentsDao.updateAppointmentStatus(
+            appointmentId = appointmentId,
+            status = status
+        )
+    }
 }
 
 

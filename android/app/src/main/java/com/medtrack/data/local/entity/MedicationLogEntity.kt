@@ -34,7 +34,7 @@ data class MedicationLogEntity(
     @ColumnInfo(name = "log_id")
     val logId: Long = 0,
     @ColumnInfo(name = "schedule_id")
-    val scheduleId: Long,
+    val scheduleId: Long? = 0,
     @ColumnInfo(name = "patient_id")
     val patientId: Long,
     @ColumnInfo(name = "taken_at")

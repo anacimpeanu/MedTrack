@@ -19,7 +19,7 @@ import com.medtrack.data.local.entity.MedicationScheduleEntity
 import com.medtrack.data.local.entity.PatientMedicationEntity
 
 @Composable
-fun TreatmentPlanScreen(viewModel: TreatmentPlanViewModel, modifier: Modifier = Modifier) {
+fun TreatmentsScreen(viewModel: TreatmentPlanViewModel, modifier: Modifier = Modifier) {
     val state by viewModel.uiState.collectAsState()
 
     Column(

@@ -15,10 +15,21 @@ interface MedTrackRepository {
     suspend fun getUserByEmail(email: String): UserEntity?
     suspend fun getUserById(userId: Long): UserEntity?
     suspend fun updateUser(user: UserEntity)
+
     suspend fun addPatient(patient: PatientEntity): Long
     suspend fun getPatientById(patientId: Long): PatientEntity?
     suspend fun updatePatient(patient: PatientEntity)
+
     fun observePatientsByUser(userId: Long): Flow<List<PatientEntity>>
+
+    fun observePatientsByCaretaker(caretakerId: Long): Flow<List<PatientEntity>>
+
+    fun observeAvailablePatients(): Flow<List<PatientEntity>>
+
+    suspend fun assignCaretakerToPatient(
+        patientId: Long,
+        caretakerId: Long
+    )
 
     suspend fun addMedication(medication: MedicationEntity): Long
     suspend fun addPatientMedication(plan: PatientMedicationEntity): Long
@@ -40,5 +51,8 @@ interface MedTrackRepository {
 
     suspend fun addAppointment(appointment: AppointmentEntity): Long
     fun observeAppointments(patientId: Long): Flow<List<AppointmentEntity>>
+    suspend fun updateAppointmentStatus(
+        appointmentId: Long,
+        status: String
+    )
 }
-

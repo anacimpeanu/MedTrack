@@ -21,6 +21,7 @@ import com.medtrack.data.local.entity.PatientMedicationEntity
 import com.medtrack.data.local.entity.UserEntity
 import androidx.room.migration.Migration
 
+
 @Database(
     entities = [
         UserEntity::class,
@@ -32,7 +33,7 @@ import androidx.room.migration.Migration
         NotificationEntity::class,
         AppointmentEntity::class
     ],
-    version = 2,
+    version = 5,
     exportSchema = false
 )
 abstract class MedTrackDatabase : RoomDatabase() {

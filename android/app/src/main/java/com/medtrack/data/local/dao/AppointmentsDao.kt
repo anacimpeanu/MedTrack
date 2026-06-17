@@ -14,5 +14,15 @@ interface AppointmentsDao {
 
     @Query("SELECT * FROM appointments WHERE patient_id = :patientId ORDER BY appointment_date")
     fun observeAppointments(patientId: Long): Flow<List<AppointmentEntity>>
+
+    @Query("""
+    UPDATE appointments
+    SET status = :status
+    WHERE appointment_id = :appointmentId
+""")
+    suspend fun updateAppointmentStatus(
+        appointmentId: Long,
+        status: String
+    )
 }
 

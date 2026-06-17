@@ -40,10 +40,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.medtrack.data.local.entity.MedicationLogEntity
+import com.medtrack.data.local.entity.AppointmentEntity
 
 @Composable
-fun JournalScreen(
+fun AppointmentsScreen(
     viewModel: DashboardViewModel,
     onBack: () -> Unit
 ) {
@@ -54,15 +54,13 @@ fun JournalScreen(
         state.patients.firstOrNull { it.patientId == patientId }
     }
 
-    var showEntryForm by remember { mutableStateOf(false) }
-    var showCaregiverForm by remember { mutableStateOf(false) }
+    var showAddForm by remember { mutableStateOf(false) }
 
-    var tookMedication by remember { mutableStateOf("") }
-    var medicationCount by remember { mutableStateOf("") }
-    var medicationTime by remember { mutableStateOf("") }
-    var feltBad by remember { mutableStateOf("") }
-    var symptoms by remember { mutableStateOf("") }
-    var caregiverNote by remember { mutableStateOf("") }
+    var doctorName by remember { mutableStateOf("") }
+    var specialty by remember { mutableStateOf("") }
+    var appointmentDate by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
@@ -91,138 +89,119 @@ fun JournalScreen(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = if (role == "caretaker") {
-                            "Patient Health Journal"
-                        } else {
-                            "My Health Journal"
-                        },
+                        text = "Upcoming Appointments",
                         color = Color.White,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
-                        text = "Daily symptoms, medication notes and caregiver observations.",
+                        text = "Organize doctor visits and medical checks in one place.",
                         color = Color.White.copy(alpha = 0.85f),
                         fontSize = 14.sp
                     )
                 }
             }
 
-            PatientJournalHeader(
+            PatientHeaderCard(
                 patientName = selectedPatient?.fullName ?: "No patient selected",
-                role = role,
-                entriesCount = state.logs.size
+                role = role
             )
 
             if (selectedPatient == null) {
-                EmptyJournalCard(
+                EmptyStateCard(
                     title = "No patient selected",
-                    message = "Please select a patient before opening the journal."
+                    message = "Please select a patient before opening appointments."
                 )
                 return@Column
             }
 
             if (role == "patient") {
                 Button(
-                    onClick = { showEntryForm = !showEntryForm },
+                    onClick = { showAddForm = !showAddForm },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White
                     )
                 ) {
                     Text(
-                        text = if (showEntryForm) "Close form" else "+ Add daily entry",
+                        text = if (showAddForm) "Close form" else "+ Add appointment",
                         color = Color(0xFF667EEA),
                         fontWeight = FontWeight.Bold
                     )
                 }
 
                 AnimatedVisibility(
-                    visible = showEntryForm,
+                    visible = showAddForm,
                     enter = fadeIn() + slideInVertically(initialOffsetY = { 40 })
                 ) {
-                    DailyEntryCard(
-                        tookMedication = tookMedication,
-                        onTookMedicationChange = { tookMedication = it },
-                        medicationCount = medicationCount,
-                        onMedicationCountChange = { medicationCount = it },
-                        medicationTime = medicationTime,
-                        onMedicationTimeChange = { medicationTime = it },
-                        feltBad = feltBad,
-                        onFeltBadChange = { feltBad = it },
-                        symptoms = symptoms,
-                        onSymptomsChange = { symptoms = it },
+                    AddAppointmentCard(
+                        doctorName = doctorName,
+                        onDoctorNameChange = { doctorName = it },
+                        specialty = specialty,
+                        onSpecialtyChange = { specialty = it },
+                        appointmentDate = appointmentDate,
+                        onAppointmentDateChange = { appointmentDate = it },
+                        location = location,
+                        onLocationChange = { location = it },
+                        notes = notes,
+                        onNotesChange = { notes = it },
                         onSave = {
-                            viewModel.addDailyHealthEntry(
-                                tookMedication = tookMedication,
-                                medicationCount = medicationCount,
-                                medicationTime = medicationTime,
-                                feltBad = feltBad,
-                                symptoms = symptoms
+                            viewModel.addAppointment(
+                                doctorName = doctorName,
+                                specialty = specialty,
+                                appointmentDate = appointmentDate,
+                                location = location,
+                                notes = notes
                             )
 
-                            tookMedication = ""
-                            medicationCount = ""
-                            medicationTime = ""
-                            feltBad = ""
-                            symptoms = ""
-                            showEntryForm = false
+                            doctorName = ""
+                            specialty = ""
+                            appointmentDate = ""
+                            location = ""
+                            notes = ""
+                            showAddForm = false
                         }
                     )
                 }
-            }
-
-            if (role == "caretaker") {
-                Button(
-                    onClick = { showCaregiverForm = !showCaregiverForm },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = if (showCaregiverForm) "Close note" else "+ Add caregiver note",
-                        color = Color(0xFF667EEA),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                AnimatedVisibility(
-                    visible = showCaregiverForm,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { 40 })
-                ) {
-                    CaregiverNoteCard(
-                        note = caregiverNote,
-                        onNoteChange = { caregiverNote = it },
-                        onSave = {
-                            viewModel.addCaregiverNote(caregiverNote)
-                            caregiverNote = ""
-                            showCaregiverForm = false
-                        }
-                    )
-                }
+            } else {
+                ReadOnlyInfoCard()
             }
 
             Text(
-                text = "Journal entries",
+                text = "Appointment list",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
 
-            if (state.logs.isEmpty()) {
-                EmptyJournalCard(
-                    title = "No entries yet",
-                    message = "Daily health entries and caregiver notes will appear here."
+            if (state.appointments.isEmpty()) {
+                EmptyStateCard(
+                    title = "No appointments yet",
+                    message = "Appointments will appear here after they are added."
                 )
             } else {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    state.logs.forEach { log ->
-                        JournalEntryCard(log = log)
+                    state.appointments.forEach { appointment ->
+                        AppointmentTimelineCard(
+                            appointment = appointment,
+                            role = role,
+                            onAttended = {
+                                viewModel.updateAppointmentStatus(
+                                    appointmentId = appointment.appointmentId,
+                                    status = "attended"
+                                )
+                            },
+                            onMissed = {
+                                viewModel.updateAppointmentStatus(
+                                    appointmentId = appointment.appointmentId,
+                                    status = "missed"
+                                )
+                            }
+                        )
                     }
                 }
             }
@@ -258,10 +237,9 @@ private fun HeaderBar(
 }
 
 @Composable
-private fun PatientJournalHeader(
+private fun PatientHeaderCard(
     patientName: String,
-    role: String,
-    entriesCount: Int
+    role: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -278,11 +256,12 @@ private fun PatientJournalHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
+                modifier = Modifier.padding(2.dp),
                 shape = CircleShape,
                 color = Color.White.copy(alpha = 0.25f)
             ) {
                 Text(
-                    text = "📔",
+                    text = "🩺",
                     modifier = Modifier.padding(12.dp),
                     fontSize = 24.sp
                 )
@@ -298,9 +277,9 @@ private fun PatientJournalHeader(
 
                 Text(
                     text = if (role == "caretaker") {
-                        "$entriesCount entry(s) • caregiver view"
+                        "Caretaker view: appointments are read-only"
                     } else {
-                        "$entriesCount entry(s) • personal health tracking"
+                        "Patient view: add and track appointments"
                     },
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 13.sp
@@ -311,17 +290,17 @@ private fun PatientJournalHeader(
 }
 
 @Composable
-private fun DailyEntryCard(
-    tookMedication: String,
-    onTookMedicationChange: (String) -> Unit,
-    medicationCount: String,
-    onMedicationCountChange: (String) -> Unit,
-    medicationTime: String,
-    onMedicationTimeChange: (String) -> Unit,
-    feltBad: String,
-    onFeltBadChange: (String) -> Unit,
-    symptoms: String,
-    onSymptomsChange: (String) -> Unit,
+private fun AddAppointmentCard(
+    doctorName: String,
+    onDoctorNameChange: (String) -> Unit,
+    specialty: String,
+    onSpecialtyChange: (String) -> Unit,
+    appointmentDate: String,
+    onAppointmentDateChange: (String) -> Unit,
+    location: String,
+    onLocationChange: (String) -> Unit,
+    notes: String,
+    onNotesChange: (String) -> Unit,
     onSave: () -> Unit
 ) {
     Card(
@@ -336,62 +315,62 @@ private fun DailyEntryCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "Daily questions",
+                text = "Add new appointment",
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium
             )
 
             Text(
-                text = "Complete this short check-in once per day.",
+                text = "Add the doctor, date and location. After saving, it will appear in the list below.",
                 color = Color.Gray,
                 fontSize = 13.sp
             )
 
-            PrettyJournalField(
-                value = tookMedication,
-                onValueChange = onTookMedicationChange,
-                label = "Ți-ai luat medicamentele?",
-                placeholder = "Da / Nu"
+            PrettyTextField(
+                value = doctorName,
+                onValueChange = onDoctorNameChange,
+                label = "Doctor name",
+                placeholder = "Ex: Dr. Ionescu"
             )
 
-            PrettyJournalField(
-                value = medicationCount,
-                onValueChange = onMedicationCountChange,
-                label = "Câte medicamente ai luat?",
-                placeholder = "Ex: 2"
+            PrettyTextField(
+                value = specialty,
+                onValueChange = onSpecialtyChange,
+                label = "Specialty",
+                placeholder = "Ex: Cardiologist"
             )
 
-            PrettyJournalField(
-                value = medicationTime,
-                onValueChange = onMedicationTimeChange,
-                label = "La ce oră le-ai luat?",
-                placeholder = "Ex: 08:00"
+            PrettyTextField(
+                value = appointmentDate,
+                onValueChange = onAppointmentDateChange,
+                label = "Date and time",
+                placeholder = "2026-06-20 10:30"
             )
 
-            PrettyJournalField(
-                value = feltBad,
-                onValueChange = onFeltBadChange,
-                label = "Te-ai simțit rău după ele?",
-                placeholder = "Da / Nu"
+            PrettyTextField(
+                value = location,
+                onValueChange = onLocationChange,
+                label = "Location",
+                placeholder = "Clinic / hospital / cabinet"
             )
 
-            PrettyJournalField(
-                value = symptoms,
-                onValueChange = onSymptomsChange,
-                label = "Simptome / observații",
-                placeholder = "Ex: amețeală, greață, oboseală..."
+            PrettyTextField(
+                value = notes,
+                onValueChange = onNotesChange,
+                label = "Notes",
+                placeholder = "Bring test results, questions, documents..."
             )
 
             Button(
                 onClick = onSave,
-                enabled = tookMedication.isNotBlank(),
+                enabled = doctorName.isNotBlank() && appointmentDate.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF667EEA)
                 )
             ) {
                 Text(
-                    text = "Save daily entry",
+                    text = "Save appointment",
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -400,60 +379,7 @@ private fun DailyEntryCard(
 }
 
 @Composable
-private fun CaregiverNoteCard(
-    note: String,
-    onNoteChange: (String) -> Unit,
-    onSave: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.96f)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(
-                text = "Caregiver note",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Text(
-                text = "Add a short observation about the patient's condition.",
-                color = Color.Gray,
-                fontSize = 13.sp
-            )
-
-            PrettyJournalField(
-                value = note,
-                onValueChange = onNoteChange,
-                label = "Observation",
-                placeholder = "Ex: Patient looked tired today."
-            )
-
-            Button(
-                onClick = onSave,
-                enabled = note.isNotBlank(),
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF667EEA)
-                )
-            ) {
-                Text(
-                    text = "Save caregiver note",
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PrettyJournalField(
+private fun PrettyTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -475,8 +401,11 @@ private fun PrettyJournalField(
 }
 
 @Composable
-private fun JournalEntryCard(
-    log: MedicationLogEntity
+private fun AppointmentTimelineCard(
+    appointment: AppointmentEntity,
+    role: String,
+    onAttended: () -> Unit,
+    onMissed: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -497,14 +426,7 @@ private fun JournalEntryCard(
                 color = Color(0xFF667EEA).copy(alpha = 0.18f)
             ) {
                 Text(
-                    text = when (log.status) {
-                        "daily_health_entry" -> "📝"
-                        "taken" -> "✅"
-                        "skipped" -> "⚠️"
-                        "missed" -> "❌"
-                        "caregiver_note" -> "👥"
-                        else -> "📌"
-                    },
+                    text = "📅",
                     modifier = Modifier.padding(12.dp),
                     fontSize = 22.sp
                 )
@@ -515,47 +437,124 @@ private fun JournalEntryCard(
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = entryTitle(log.status),
+                    text = appointment.doctorName,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
 
                 Text(
-                    text = formatDateText(log.takenAt),
+                    text = appointment.specialty ?: "General consultation",
                     color = Color(0xFF667EEA),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp
                 )
 
                 Text(
-                    text = log.notes ?: "-",
+                    text = "🕒 ${appointment.appointmentDate}",
                     color = Color.DarkGray,
                     fontSize = 13.sp
                 )
+
+                Text(
+                    text = "📍 ${appointment.location ?: "-"}",
+                    color = Color.DarkGray,
+                    fontSize = 13.sp
+                )
+
+                if (!appointment.notes.isNullOrBlank()) {
+                    Text(
+                        text = "📝 ${appointment.notes}",
+                        color = Color.Gray,
+                        fontSize = 13.sp
+                    )
+                }
+
+                StatusBadge(status = appointment.status)
+
+                if (role == "patient" && appointment.status == "pending") {
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = onAttended,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF2E7D32)
+                            )
+                        ) {
+                            Text("✓ Attended")
+                        }
+
+                        Button(
+                            onClick = onMissed,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFC62828)
+                            )
+                        ) {
+                            Text("✕ Missed")
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-private fun entryTitle(status: String): String {
-    return when (status) {
-        "daily_health_entry" -> "Daily health entry"
-        "taken" -> "Medication taken"
-        "skipped" -> "Medication skipped"
-        "missed" -> "Medication missed"
-        "caregiver_note" -> "Caregiver note"
-        else -> status
+@Composable
+private fun StatusBadge(
+    status: String
+) {
+    val text = when (status) {
+        "attended" -> "✓ Attended"
+        "missed" -> "✕ Missed"
+        else -> "Pending"
     }
-}
 
-private fun formatDateText(value: String): String {
-    return value
-        .replace("T", " ")
-        .take(16)
+    val color = when (status) {
+        "attended" -> Color(0xFF2E7D32)
+        "missed" -> Color(0xFFC62828)
+        else -> Color.Gray
+    }
+
+    Text(
+        text = "Status: $text",
+        color = color,
+        fontWeight = FontWeight.Bold,
+        fontSize = 13.sp
+    )
 }
 
 @Composable
-private fun EmptyJournalCard(
+private fun ReadOnlyInfoCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.96f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "View-only access",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF667EEA)
+            )
+
+            Text(
+                text = "Caretakers can view the patient's appointments and their status. Patients can add and update appointments from their account.",
+                color = Color.DarkGray,
+                fontSize = 13.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyStateCard(
     title: String,
     message: String
 ) {

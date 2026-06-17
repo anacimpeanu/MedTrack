@@ -31,6 +31,9 @@ data class AppointmentEntity(
     @ColumnInfo(name = "appointment_date")
     val appointmentDate: String,
     val location: String? = null,
-    val notes: String? = null
+    val notes: String? = null,
+
+    @ColumnInfo(name = "status")
+    val status: String = "pending"
 )
 
