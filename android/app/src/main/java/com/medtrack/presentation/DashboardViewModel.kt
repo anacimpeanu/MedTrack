@@ -47,6 +47,7 @@ data class DashboardUiState(
     val healthTip: String = "",
     val motivationQuote: String = "",
     val isLoadingRemoteCards: Boolean = false,
+    val patientPhotoMap: Map<Long, String?> = emptyMap(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -110,6 +111,8 @@ class DashboardViewModel(
                         it.copy(patients = patients)
                     }
 
+                    loadPatientPhotos(patients)
+
                     val selectedId = selectedPatientIdFlow.value
                     val stillExists = selectedId != null &&
                             patients.any { patient ->
@@ -149,6 +152,7 @@ class DashboardViewModel(
                 _uiState.update {
                     it.copy(availablePatients = patients)
                 }
+                loadPatientPhotos(patients)
             }
         }
     }
@@ -686,6 +690,29 @@ class DashboardViewModel(
             }
         }
     }
+    private fun loadPatientPhotos(patients: List<PatientEntity>) {
+        viewModelScope.launch {
+            val userIds = patients.map { it.userId }.distinct()
+
+            if (userIds.isEmpty()) {
+                _uiState.update {
+                    it.copy(patientPhotoMap = emptyMap())
+                }
+                return@launch
+            }
+
+            val users = repository.getUsersByIds(userIds)
+
+            val photoMap = users.associate { user ->
+                user.userId to user.profilePhotoUri
+            }
+
+            _uiState.update {
+                it.copy(patientPhotoMap = photoMap)
+            }
+        }
+    }
+
     fun updateMedicalProfile(
         bloodType: String,
         allergies: String,

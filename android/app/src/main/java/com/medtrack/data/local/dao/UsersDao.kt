@@ -20,5 +20,8 @@ interface UsersDao {
 
     @Update
     suspend fun updateUser(user: UserEntity)
+
+    @Query("SELECT * FROM users WHERE user_id IN (:userIds)")
+    suspend fun getUsersByIds(userIds: List<Long>): List<UserEntity>
 }
 

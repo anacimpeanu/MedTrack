@@ -361,11 +361,11 @@ private fun DailyEntryCard(
                 placeholder = "Ex: 2"
             )
 
-            PrettyJournalField(
+            TimePickerField(
                 value = medicationTime,
                 onValueChange = onMedicationTimeChange,
                 label = "La ce oră le-ai luat?",
-                placeholder = "Ex: 08:00"
+                placeholder = "Tap to select time"
             )
 
             PrettyJournalField(

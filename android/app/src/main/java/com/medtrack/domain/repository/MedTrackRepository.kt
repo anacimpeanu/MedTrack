@@ -66,4 +66,6 @@ interface MedTrackRepository {
         familyDoctor: String?,
         insuranceProvider: String?
     )
+
+    suspend fun getUsersByIds(userIds: List<Long>): List<UserEntity>
 }

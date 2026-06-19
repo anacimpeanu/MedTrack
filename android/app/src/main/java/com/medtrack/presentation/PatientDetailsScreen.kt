@@ -119,10 +119,13 @@ fun PatientDetailsScreen(
                 journalEntries = state.logs.size
             )
 
-            MedicalSummaryCard(
-                bloodType = patient.bloodType ?: "-",
-                allergies = patient.allergies ?: "-",
-                conditions = patient.chronicConditions ?: "-"
+//            MedicalSummaryCard(
+//                bloodType = patient.bloodType ?: "-",
+//                allergies = patient.allergies ?: "-",
+//                conditions = patient.chronicConditions ?: "-"
+//            )
+            PatientHealthStatsCard(
+                logs = state.logs
             )
 
             QuickActionsCard(
@@ -279,49 +282,52 @@ private fun StatItem(
     }
 }
 
-@Composable
-private fun MedicalSummaryCard(
-    bloodType: String,
-    allergies: String,
-    conditions: String
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.96f)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "Medical Summary",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            SummaryRow(
-                icon = "🩸",
-                title = "Blood Type",
-                value = bloodType
-            )
-
-            SummaryRow(
-                icon = "⚠️",
-                title = "Allergies",
-                value = allergies
-            )
-
-            SummaryRow(
-                icon = "📋",
-                title = "Conditions",
-                value = conditions
-            )
-        }
-    }
-}
+//@Composable
+//private fun MedicalSummaryCard(
+//    bloodType: String,
+//    allergies: String,
+//    conditions: String
+//) {
+//    Card(
+//        modifier = Modifier.fillMaxWidth(),
+//        shape = RoundedCornerShape(28.dp),
+//        colors = CardDefaults.cardColors(
+//            containerColor = Color.White.copy(alpha = 0.96f)
+//        )
+//    ) {
+//        Column(
+//            modifier = Modifier.padding(18.dp),
+//            verticalArrangement = Arrangement.spacedBy(12.dp)
+//        ) {
+//            PatientHealthStatsCard(
+//                logs = state.logs
+//            )
+////            Text(
+////                text = "Medical Summary",
+////                fontWeight = FontWeight.Bold,
+////                style = MaterialTheme.typography.titleMedium
+////            )
+////
+////            SummaryRow(
+////                icon = "🩸",
+////                title = "Blood Type",
+////                value = bloodType
+////            )
+////
+////            SummaryRow(
+////                icon = "⚠️",
+////                title = "Allergies",
+////                value = allergies
+////            )
+////
+////            SummaryRow(
+////                icon = "📋",
+////                title = "Conditions",
+////                value = conditions
+////            )
+//        }
+//    }
+//}
 
 @Composable
 private fun SummaryRow(
@@ -404,6 +410,124 @@ private fun QuickActionsCard(
             ) {
                 Text("Open journal")
             }
+        }
+    }
+}
+@Composable
+private fun PatientHealthStatsCard(
+    logs: List<com.medtrack.data.local.entity.MedicationLogEntity>
+) {
+    val medicationLogs = logs.filter {
+        it.status == "taken" || it.status == "skipped" || it.status == "missed"
+    }
+
+    val total = medicationLogs.size
+    val taken = medicationLogs.count { it.status == "taken" }
+    val skipped = medicationLogs.count { it.status == "skipped" }
+    val missed = medicationLogs.count { it.status == "missed" }
+
+    val adherence = if (total == 0) {
+        0
+    } else {
+        ((taken.toDouble() / total) * 100).toInt()
+    }
+
+    val message = when {
+        total == 0 -> "No medication activity yet."
+        adherence >= 90 -> "Excellent adherence."
+        adherence >= 70 -> "Good progress, but there is room to improve."
+        else -> "Low adherence. Patient may need extra support."
+    }
+
+    val mainColor = when {
+        adherence >= 90 -> Color(0xFF2E7D32)
+        adherence >= 70 -> Color(0xFFF9A825)
+        else -> Color(0xFFC62828)
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.96f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "Health Statistics",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Text(
+                text = "$adherence%",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineLarge,
+                color = mainColor
+            )
+
+            Text(
+                text = "Medication adherence",
+                color = Color.DarkGray,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Text(
+                text = message,
+                color = Color.Gray,
+                fontSize = 13.sp
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                PatientStatMiniCard("Taken", taken, Color(0xFF2E7D32))
+                PatientStatMiniCard("Skipped", skipped, Color(0xFFF9A825))
+                PatientStatMiniCard("Missed", missed, Color(0xFFC62828))
+            }
+
+            Text(
+                text = "Total answered reminders: $total",
+                color = Color.DarkGray,
+                fontSize = 13.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun PatientStatMiniCard(
+    label: String,
+    value: Int,
+    color: Color
+) {
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.12f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = value.toString(),
+                color = color,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
+
+            Text(
+                text = label,
+                color = color,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }

@@ -113,6 +113,10 @@ class LocalMedTrackRepository(
         )
     }
 
+    override suspend fun getUsersByIds(userIds: List<Long>): List<UserEntity> {
+        return usersDao.getUsersByIds(userIds)
+    }
+
     override suspend fun updateMedicalProfile(
         patientId: Long,
         bloodType: String?,

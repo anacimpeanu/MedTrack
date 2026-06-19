@@ -44,6 +44,7 @@ import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.material3.OutlinedTextField
 
 @Composable
 fun DashboardScreen(
@@ -281,29 +282,7 @@ fun DashboardScreen(
                     showAddPatientForm = showAddPatientForm,
                     viewModel = viewModel
                 )
-            } else if (role == "patient") {
-                PatientBadgeCard(selectedPatient)
             }
-
-            TreatmentCard(
-                title = if (role == "caretaker") {
-                    "Selected patient treatment"
-                } else {
-                    "My treatment"
-                },
-                activePlans = state.activePlans,
-                selectedPatient = selectedPatient
-            )
-
-            JournalCard(
-                title = if (role == "caretaker") {
-                    "Selected patient journal"
-                } else {
-                    "My journal"
-                },
-                logs = state.logs,
-                selectedPatient = selectedPatient
-            )
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -528,6 +507,13 @@ private fun CaretakerPatientsCard(
     viewModel: DashboardViewModel
 ) {
     val state by viewModel.uiState.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredPatients = patients.filter { patient ->
+        patient.fullName.contains(searchQuery, ignoreCase = true) ||
+                (patient.gender ?: "").contains(searchQuery, ignoreCase = true) ||
+                (patient.birthDate ?: "").contains(searchQuery, ignoreCase = true)
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -551,8 +537,9 @@ private fun CaretakerPatientsCard(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
+
                     Text(
-                        text = "${patients.size} patient(s)",
+                        text = "${filteredPatients.size} of ${patients.size} patient(s)",
                         color = Color.Gray,
                         fontSize = 12.sp
                     )
@@ -563,18 +550,33 @@ private fun CaretakerPatientsCard(
                 }
             }
 
+//            OutlinedTextField(
+//                value = searchQuery,
+//                onValueChange = { searchQuery = it },
+//                label = { Text("Search patient") },
+//                placeholder = { Text("Name, gender, birth date...") },
+//                modifier = Modifier.fillMaxWidth(),
+//                shape = RoundedCornerShape(18.dp)
+//            )
+
             if (patients.isEmpty()) {
                 Text(
                     text = "No patients added yet.",
                     color = Color.Gray
                 )
+            } else if (filteredPatients.isEmpty()) {
+                Text(
+                    text = "No patient found for \"$searchQuery\".",
+                    color = Color.Gray
+                )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    patients.forEach { patient ->
+                    filteredPatients.forEach { patient ->
                         PatientFriendCard(
                             patient = patient,
                             isSelected = selectedPatientId == patient.patientId,
                             lastStatus = state.logs.firstOrNull()?.status,
+                            profilePhotoUri = state.patientPhotoMap[patient.userId],
                             onClick = {
                                 onPatientSelected(patient.patientId)
                                 onPatientOpen(patient.patientId)
@@ -590,14 +592,26 @@ private fun CaretakerPatientsCard(
         }
     }
 }
-
 @Composable
 private fun PatientFriendCard(
     patient: com.medtrack.data.local.entity.PatientEntity,
     isSelected: Boolean,
     lastStatus: String?,
+    profilePhotoUri: String?,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    val patientBitmap = remember(profilePhotoUri) {
+        profilePhotoUri?.takeIf { it.isNotBlank() }?.let { uriString ->
+            runCatching {
+                context.contentResolver.openInputStream(uriString.toUri())?.use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream)
+                }
+            }.getOrNull()
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -620,7 +634,26 @@ private fun PatientFriendCard(
                 color = Color(0xFF667EEA).copy(alpha = 0.18f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(text = "👤", fontSize = 28.sp)
+                    if (patientBitmap != null) {
+                        Image(
+                            bitmap = patientBitmap.asImageBitmap(),
+                            contentDescription = "Patient photo",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Text(
+                            text = patient.fullName
+                                .split(" ")
+                                .mapNotNull { it.firstOrNull()?.toString() }
+                                .take(2)
+                                .joinToString("")
+                                .uppercase()
+                                .ifBlank { "👤" },
+                            color = Color(0xFF667EEA),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
                 }
             }
 
@@ -660,14 +693,92 @@ private fun PatientFriendCard(
                 )
             }
 
-            Text(
-                text = "Open",
-                color = Color(0xFF667EEA),
-                fontWeight = FontWeight.Bold
-            )
+//            Text(
+//                text = if (isSelected) "Open" else " ",
+//                color = Color(0xFF667EEA),
+//                fontWeight = FontWeight.Bold
+//            )
         }
     }
 }
+//@Composable
+//private fun PatientFriendCard(
+//    patient: com.medtrack.data.local.entity.PatientEntity,
+//    isSelected: Boolean,
+//    lastStatus: String?,
+//    profilePhotoUri: String?,
+//    onClick: () -> Unit
+//) {
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .clickable { onClick() },
+//        shape = RoundedCornerShape(22.dp),
+//        colors = CardDefaults.cardColors(
+//            containerColor = if (isSelected) Color(0xFFEFF2FF) else Color(0xFFF8F8FF)
+//        )
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(14.dp),
+//            horizontalArrangement = Arrangement.spacedBy(14.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Surface(
+//                modifier = Modifier.size(58.dp),
+//                shape = CircleShape,
+//                color = Color(0xFF667EEA).copy(alpha = 0.18f)
+//            ) {
+//                Box(contentAlignment = Alignment.Center) {
+//                    Text(text = "👤", fontSize = 28.sp)
+//                }
+//            }
+//
+//            Column(
+//                modifier = Modifier.weight(1f),
+//                verticalArrangement = Arrangement.spacedBy(3.dp)
+//            ) {
+//                Text(
+//                    text = patient.fullName,
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 16.sp
+//                )
+//
+//                Text(
+//                    text = "Birth date: ${patient.birthDate ?: "-"}",
+//                    color = Color.DarkGray,
+//                    fontSize = 12.sp
+//                )
+//
+//                Text(
+//                    text = "Gender: ${patient.gender ?: "-"}",
+//                    color = Color.DarkGray,
+//                    fontSize = 12.sp
+//                )
+//
+//                Text(
+//                    text = when (lastStatus) {
+//                        "taken" -> "🟢 Last status: medication taken"
+//                        "skipped" -> "🟡 Last status: skipped"
+//                        "missed" -> "🔴 Last status: missed"
+//                        "daily_health_entry" -> "🔵 Last status: health entry"
+//                        else -> "⚪ No recent activity"
+//                    },
+//                    fontSize = 12.sp,
+//                    color = Color(0xFF667EEA),
+//                    fontWeight = FontWeight.SemiBold
+//                )
+//            }
+//
+//            Text(
+//                text = "Open",
+//                color = Color(0xFF667EEA),
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+//    }
+//}
 
 @Composable
 private fun AddPatientForm(
@@ -675,58 +786,102 @@ private fun AddPatientForm(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    var searchQuery by remember {
+        mutableStateOf("")
+    }
+
+    val filteredPatients = state.availablePatients.filter { patient ->
+        patient.fullName.contains(
+            searchQuery,
+            ignoreCase = true
+        )
+    }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         Text(
             text = "Available patients",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold
         )
 
-        if (state.availablePatients.isEmpty()) {
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = {
+                searchQuery = it
+            },
+            label = {
+                Text("Search patient")
+            },
+            placeholder = {
+                Text("Type patient name...")
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp)
+        )
+
+        if (filteredPatients.isEmpty()) {
             Text(
-                text = "No available patients.",
+                text = "No patient found.",
                 color = Color.Gray
             )
         } else {
-            state.availablePatients.forEach { patient ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFF5F6FF)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = patient.fullName,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            Text(text = "Birth date: ${patient.birthDate ?: "-"}")
-                            Text(text = "Gender: ${patient.gender ?: "-"}")
-                        }
-
-                        Button(
-                            onClick = {
-                                viewModel.assignPatientToCaretaker(patient.patientId)
-                            }
-                        ) {
-                            Text("Add")
-                        }
-                    }
+                filteredPatients.forEach { patient ->
+                    PatientFriendCard(
+                        patient = patient,
+                        isSelected = false,
+                        lastStatus = null,
+                        profilePhotoUri = state.patientPhotoMap[patient.userId],
+                        onClick = {
+                            viewModel.assignPatientToCaretaker(patient.patientId)
+                        })
                 }
-            }
+//            filteredPatients.forEach { patient ->
+//                Card(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    shape = RoundedCornerShape(18.dp),
+//                    colors = CardDefaults.cardColors(
+//                        containerColor = Color(0xFFF5F6FF)
+//                    )
+//                ) {
+//                    Row(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(12.dp),
+//                        horizontalArrangement = Arrangement.SpaceBetween,
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        Column {
+//                            Text(
+//                                text = patient.fullName,
+//                                fontWeight = FontWeight.Bold
+//                            )
+//
+//                            Text(
+//                                text = "Birth date: ${patient.birthDate ?: "-"}"
+//                            )
+//
+//                            Text(
+//                                text = "Gender: ${patient.gender ?: "-"}"
+//                            )
+//                        }
+//
+//                        Button(
+//                            onClick = {
+//                                viewModel.assignPatientToCaretaker(
+//                                    patient.patientId
+//                                )
+//                            }
+//                        ) {
+//                            Text("Add")
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 }
-
 @Composable
 private fun TreatmentCard(
     title: String,
