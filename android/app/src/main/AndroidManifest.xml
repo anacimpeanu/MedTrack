@@ -4,6 +4,8 @@
     <application
         android:name=".MedTrackApplication"
         android:allowBackup="true"
+        android:icon="@drawable/medtrack_logo"
+        android:roundIcon="@drawable/medtrack_logo"
         android:label="MedTrack"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
