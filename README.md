@@ -4,7 +4,7 @@ A comprehensive medication tracking and management system built with **Kotlin**,
 
 ---
 
-## 📋 Project Description
+## Project Description
 
 MedTrack is an Android application designed to solve the critical problem of medication non-adherence and poor health tracking. The application provides a centralized platform where:
 
@@ -16,7 +16,7 @@ The application prioritizes data integrity, user experience, and offline-first f
 
 ---
 
-## 🎯 Key Functionalities
+## Key Functionalities
 
 ### Authentication & User Management
 - **User Registration** - Create accounts with secure password storage
@@ -27,7 +27,6 @@ The application prioritizes data integrity, user experience, and offline-first f
 ### Patient Management
 - **Patient List** - View all associated patients (for caregivers)
 - **Patient Details** - Comprehensive patient profiles with medical history
-- **Medical Profile** - Blood type, allergies, chronic conditions, emergency contacts, insurance information
 - **Patient-Caregiver Assignment** - Link patients with their healthcare providers
 
 ### Treatment Plan Management
@@ -46,7 +45,6 @@ The application prioritizes data integrity, user experience, and offline-first f
 ### Appointments & Notifications
 - **Appointment Scheduling** - Create and manage medical appointments
 - **Status Tracking** - Monitor appointment status (scheduled/completed/cancelled)
-- **Notifications** - System alerts for medication reminders and appointments (via Retrofit-based remote data)
 
 ### Health Insights Dashboard
 - **Dashboard Overview** - Quick summary of active treatments, recent logs, and appointments
@@ -151,8 +149,6 @@ Data Layer (Room + Remote APIs)
 7. **appointments** - Medical appointments
    - appointment_id, patient_id (FK), appointment_date, status, notes
 
-8. **notifications** - Alert/reminder records
-   - notification_id, user_id (FK), title, message, is_read, created_at
 
 ### Data Flow: From Input to Storage
 
@@ -203,16 +199,9 @@ The application integrates with two external APIs to enhance user experience:
 - **Purpose:** Inspirational quotes for user motivation
 - **Method:** Retrofit HTTP GET with list response parsing
 - **Usage:** Dashboard motivational content
-
-#### Implementation Details
-- **Base Client:** `HealthRemoteDataSource` object singleton
-- **Data Format:** JSON deserialization via Gson converter
-- **Error Handling:** Fallback messages if API unavailable
-- **Network Layer:** Retrofit 2.11.0 with Gson 2.11.0
-
 ---
 
-## 📱 Application Flow (User Journey)
+## Application Flow (User Journey)
 
 ### 1. **Welcome Screen** (Entry Point)
    - First-time user sees feature overview
@@ -350,7 +339,7 @@ Top App Bar → Logout Button:
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Framework & Language
 - **Language:** Kotlin 1.9+
@@ -377,161 +366,7 @@ Top App Bar → Logout Button:
 - **StateFlow** (kotlinx-coroutines 1.8.1)
 - **Lifecycle** (lifecycle-runtime-ktx 2.8.4)
 
-### Networking
-- **Retrofit 2** (2.11.0)
-- **Gson Converter** (2.11.0)
-- **Coroutines** for async network calls
-
-### Testing
-- **JUnit 4** (unit tests)
-- **Espresso** (UI tests)
-- **Room Testing** (database tests)
-- **Coroutines Test** (async testing utilities)
-
-### Build & Dependency Management
-- **Gradle** (wrapper included)
-- **Kotlin Symbol Processing (KSP)** (compiler plugin for Room)
-- **ProGuard** (code obfuscation for release builds)
-
----
-
-## 📂 Project Structure
-
-```
-android/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/medtrack/
-│   │   │   │   ├── MainActivity.kt                    # Entry point & navigation
-│   │   │   │   ├── MedTrackApplication.kt            # App initialization & DI
-│   │   │   │   ├── data/
-│   │   │   │   │   ├── local/
-│   │   │   │   │   │   ├── MedTrackDatabase.kt       # Room Database config
-│   │   │   │   │   │   ├── entity/                   # Data entities
-│   │   │   │   │   │   │   ├── UserEntity.kt
-│   │   │   │   │   │   │   ├── PatientEntity.kt
-│   │   │   │   │   │   │   ├── MedicationEntity.kt
-│   │   │   │   │   │   │   ├── PatientMedicationEntity.kt
-│   │   │   │   │   │   │   ├── MedicationScheduleEntity.kt
-│   │   │   │   │   │   │   ├── MedicationLogEntity.kt
-│   │   │   │   │   │   │   ├── AppointmentEntity.kt
-│   │   │   │   │   │   │   └── NotificationEntity.kt
-│   │   │   │   │   │   └── dao/                      # Data Access Objects
-│   │   │   │   │   │       ├── UsersDao.kt
-│   │   │   │   │   │       ├── PatientsDao.kt
-│   │   │   │   │   │       ├── TreatmentPlanDao.kt
-│   │   │   │   │   │       ├── LogsDao.kt
-│   │   │   │   │   │       ├── NotificationsDao.kt
-│   │   │   │   │   │       ├── AppointmentsDao.kt
-│   │   │   │   │   │       └── MedTrackDao.kt        # Aggregate interface
-│   │   │   │   │   ├── remote/
-│   │   │   │   │   │   └── HealthRemoteDataSource.kt # Retrofit APIs
-│   │   │   │   │   └── repository/
-│   │   │   │   │       └── LocalMedTrackRepository.kt # Repository impl
-│   │   │   │   ├── domain/
-│   │   │   │   │   └── repository/
-│   │   │   │   │       └── MedTrackRepository.kt     # Repository interface
-│   │   │   │   └── presentation/
-│   │   │   │       ├── LoginViewModel.kt
-│   │   │   │       ├── LoginScreen.kt
-│   │   │   │       ├── RegisterViewModel.kt
-│   │   │   │       ├── RegisterScreen.kt
-│   │   │   │       ├── ProfileSetupViewModel.kt
-│   │   │   │       ├── ProfileSetupScreen.kt
-│   │   │   │       ├── DashboardViewModel.kt
-│   │   │   │       ├── DashboardScreen.kt
-│   │   │   │       ├── PatientDetailsScreen.kt
-│   │   │   │       ├── TreatmentsScreen.kt
-│   │   │   │       ├── JournalScreen.kt
-│   │   │   │       ├── TreatmentPlanViewModel.kt
-│   │   │   │       ├── LogsViewModel.kt
-│   │   │   │       ├── HealthCalendarScreen.kt
-│   │   │   │       ├── MedicalProfileScreen.kt
-│   │   │   │       ├── WelsomeScreen.kt
-│   │   │   │       └── UiDefaults.kt                 # UI constants
-│   │   │   └── res/
-│   │   │       ├── drawable/
-│   │   │       │   └── medtrack_logo.xml
-│   │   │       └── values/
-│   │   │           └── colors.xml
-│   │   ├── AndroidManifest.xml                        # App manifest
-│   │   ├── res/
-│   │   └── assets/
-│   ├── build.gradle.kts                               # App-level build config
-│   └── proguard-rules.pro
-├── gradle/
-│   └── wrapper/                                       # Gradle wrapper
-├── build.gradle.kts                                   # Project-level build config
-├── settings.gradle.kts
-├── gradle.properties
-├── local.properties                                   # Local SDK paths (gitignored)
-├── gradlew                                            # Unix Gradle wrapper
-├── gradlew.bat                                        # Windows Gradle wrapper
-└── README.md                                          # This file
-```
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Android Studio (Latest Arctic Fox or newer)
-- Android SDK API Level 26+
-- Kotlin 1.9+
-- Gradle 8.0+
-
-### Setup & Installation
-
-1. **Clone or Download the Project**
-   ```bash
-   cd C:\Users\Admin\Desktop\MedTrack\android
-   ```
-
-2. **Open in Android Studio**
-   - File → Open → Select the `android` folder
-   - Wait for Gradle sync to complete
-
-3. **Sync Gradle Dependencies**
-   - Android Studio will automatically prompt to sync Gradle
-   - Alternatively: File → Sync Now
-
-4. **Configure Local SDK Path** (if needed)
-   - Edit `local.properties` with your Android SDK path:
-     ```properties
-     sdk.dir=C:\\Users\\YourUsername\\AppData\\Local\\Android\\Sdk
-     ```
-
-5. **Build & Run**
-   - Select an emulator or connect a physical device
-   - Run → Run 'app' (or press Shift + F10)
-
-### Running Tests
-
-#### Compile Kotlin
-```powershell
-cd C:\Users\Admin\Desktop\MedTrack\android
-.\gradlew.bat :app:compileDebugKotlin
-```
-
-#### Run Unit Tests
-```powershell
-.\gradlew.bat :app:testDebugUnitTest
-```
-
-#### Run Instrumentation Tests
-```powershell
-.\gradlew.bat :app:connectedAndroidTest
-```
-
-#### Build Release APK
-```powershell
-.\gradlew.bat :app:assembleRelease
-```
-
----
-
-## 📊 Features Breakdown by Role
+## Features Breakdown by Role
 
 ### For Patients
 - ✅ Register and create secure account
@@ -555,7 +390,7 @@ cd C:\Users\Admin\Desktop\MedTrack\android
 
 ---
 
-## 🔒 Security & Best Practices
+## Security & Best Practices
 
 ### Data Security
 - ✅ Passwords stored with secure hashing (future enhancement)
@@ -576,64 +411,7 @@ cd C:\Users\Admin\Desktop\MedTrack\android
 
 ---
 
-## 🐛 Known Limitations & Future Enhancements
+## Team 
 
-### Current Limitations
-1. Password storage should use bcrypt/Argon2 (currently plain-text)
-2. No end-to-end encryption for patient data
-3. Single-device synchronization only (no cloud backup)
-4. Limited offline notification scheduling
+**Developed by:** Cimpeanu Ana-Maria, Iova Nicoleta-Carmen, Tismanaru Artemis-Constantina
 
-### Planned Enhancements
-1. **Cloud Sync** - Firebase or Supabase backend
-2. **Push Notifications** - Firebase Cloud Messaging
-3. **Data Export** - PDF reports for adherence
-4. **Multi-Device Sync** - Cross-device patient records
-5. **Advanced Analytics** - Predictive adherence modeling
-6. **Biometric Auth** - Face/fingerprint authentication
-7. **Voice Logging** - Voice-to-text medication logging
-8. **Integration APIs** - HL7 FHIR standard support
-
----
-
-## 📞 Support & Contribution
-
-### Troubleshooting
-
-**Issue: Gradle sync fails**
-- Clear cache: File → Invalidate Caches → Invalidate and Restart
-- Update Gradle wrapper: gradlew wrapper --gradle-version=8.2.1
-
-**Issue: Room schema conflicts**
-- Clear app data on emulator/device
-- Increment database version and add migration
-
-**Issue: Database locked error**
-- Ensure only one instance of app running
-- Close and reopen app
-
-### Contributing
-Contributions welcome! Please:
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/your-feature`)
-3. Commit changes (`git commit -am 'Add feature'`)
-4. Push to branch (`git push origin feature/your-feature`)
-5. Create Pull Request
-
----
-
-## 📄 License
-
-This project is proprietary. All rights reserved.
-
----
-
-## 👥 Team & Acknowledgments
-
-**Developed by:** MedTrack Development Team
-
-**Technologies & Libraries:**
-- JetBrains for Kotlin & Android Studio
-- Google for Android Framework & Jetpack libraries
-- Square for Retrofit
-- External APIs: adviceslip.com, zenquotes.io
